@@ -1,0 +1,10 @@
+{
+  "name": "kaluga-courier-isochrone-lab8",
+  "version": "1.0.0",
+  "description": "Laboratory work #8: walking delivery zone analysis for Kaluga",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "smoke": "node smoke-test.js"
+  }
+}

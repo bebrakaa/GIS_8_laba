@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ЛР8: зона пешей доставки еды в Калуге</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Literata:opsz,wght@7..72,600&display=swap" rel="stylesheet">
+    <script src="https://maps.api.2gis.ru/2.0/loader.js?pkg=full&key=98ba98a4-edaa-4d4c-ade3-cc41f0820be0"></script>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="page-shell">
+      <aside class="panel">
+        <div class="hero">
+          <p class="eyebrow">Лабораторная работа 8</p>
+          <h1>Зона пешей доставки еды в Калуге</h1>
+          <p class="lead">
+            Приложение объединяет геокодинг, тайлинговую карту, геохеш, маршрутизацию и построение изохрон
+            для варианта 1 "Доставка из ресторана" и города 11 "Калуга".
+          </p>
+        </div>
+
+        <details class="card card-toggle" open>
+          <summary class="card-summary">
+            <span class="card-summary-title">1. Геокодинг</span>
+            <span class="card-summary-meta">Nominatim API</span>
+          </summary>
+
+          <div class="point-card">
+            <details class="inner-toggle" open>
+              <summary class="inner-summary">
+                <span class="inner-summary-title">Ресторан</span>
+                <span class="inner-summary-meta">Задание точки ресторана</span>
+              </summary>
+
+              <div class="point-card-head">
+                <div class="toggle-row mode-row">
+                  <button id="restaurant-mode-address" class="chip is-active">По адресу</button>
+                  <button id="restaurant-mode-coords" class="chip">По координатам</button>
+                </div>
+              </div>
+
+              <div id="restaurant-address-panel">
+          <label class="field">
+            <span>Адрес ресторана</span>
+            <div class="field-row">
+              <input id="restaurant-query" type="text" placeholder="Например: улица Кирова, 1, Калуга">
+              <button id="search-restaurant" class="secondary">Найти</button>
+            </div>
+          </label>
+            </div>
+
+            <div id="restaurant-coords-panel" class="hidden-panel">
+          <div class="coords-grid">
+            <label class="field">
+              <span>Широта ресторана</span>
+              <input id="restaurant-lat" type="number" step="any" placeholder="54.5159952">
+            </label>
+            <label class="field">
+              <span>Долгота ресторана</span>
+              <input id="restaurant-lon" type="number" step="any" placeholder="36.2462193">
+            </label>
+          </div>
+
+          <div class="action-row compact">
+            <button id="set-restaurant-coords" class="ghost">Поставить ресторан по координатам</button>
+          </div>
+            </div>
+
+          <div id="restaurant-results" class="results"></div>
+            <div id="restaurant-current" class="point-status empty-status">Точка ресторана ещё не выбрана.</div>
+            </details>
+          </div>
+
+          <div class="point-card">
+            <details class="inner-toggle" open>
+              <summary class="inner-summary">
+                <span class="inner-summary-title">Клиент</span>
+                <span class="inner-summary-meta">Задание точки клиента</span>
+              </summary>
+
+              <div class="point-card-head">
+                <div class="toggle-row mode-row">
+                  <button id="customer-mode-address" class="chip is-active">По адресу</button>
+                  <button id="customer-mode-coords" class="chip">По координатам</button>
+                </div>
+              </div>
+
+              <div id="customer-address-panel">
+          <label class="field">
+            <span>Адрес клиента</span>
+            <div class="field-row">
+              <input id="customer-query" type="text" placeholder="Например: улица Ленина, 50, Калуга">
+              <button id="search-customer" class="secondary">Найти</button>
+            </div>
+          </label>
+            </div>
+
+            <div id="customer-coords-panel" class="hidden-panel">
+          <div class="coords-grid">
+            <label class="field">
+              <span>Широта клиента</span>
+              <input id="customer-lat" type="number" step="any" placeholder="54.5223368">
+            </label>
+            <label class="field">
+              <span>Долгота клиента</span>
+              <input id="customer-lon" type="number" step="any" placeholder="36.2676989">
+            </label>
+          </div>
+
+          <div class="action-row compact">
+            <button id="set-customer-coords" class="ghost">Поставить клиента по координатам</button>
+          </div>
+            </div>
+
+          <div id="customer-results" class="results"></div>
+            <div id="customer-current" class="point-status empty-status">Точка клиента ещё не выбрана.</div>
+            </details>
+          </div>
+
+          <p class="hint">
+            Можно задать точки тремя способами: по адресу, по координатам или кликом по карте. После постановки маркеры можно перетаскивать мышью.
+          </p>
+
+          <div class="toggle-row">
+            <button id="mode-restaurant" class="chip is-active">Местоположение ресторана</button>
+            <button id="mode-customer" class="chip">Моё местоположение</button>
+          </div>
+
+          <div class="action-row">
+            <button id="copy-restaurant-to-customer" class="ghost">Сделать клиента в точке ресторана</button>
+            <button id="clear-geocoding" class="secondary">Очистить всё</button>
+          </div>
+        </details>
+
+        <details class="card card-toggle" open>
+          <summary class="card-summary">
+            <span class="card-summary-title">2. Анализ доставки</span>
+            <span class="card-summary-meta">Valhalla + Geohash</span>
+          </summary>
+
+          <label class="field">
+            <span>Время пешей доставки, минут</span>
+            <input id="delivery-minutes" type="number" min="1" max="180" value="20">
+          </label>
+
+          <div class="action-row">
+            <button id="build-zone">Построить зону</button>
+            <button id="clear-analysis" class="secondary">Очистить анализ</button>
+          </div>
+
+          <div class="action-row">
+            <button id="export-geojson" class="ghost">Скопировать GeoJSON изохроны</button>
+          </div>
+        </details>
+
+        <details class="card card-toggle">
+          <summary class="card-summary">
+            <span class="card-summary-title">3. Быстрые примеры</span>
+            <span class="card-summary-meta">5 сценариев</span>
+          </summary>
+          <div id="examples" class="examples"></div>
+        </details>
+
+        <details class="card card-toggle" open>
+          <summary class="card-summary">
+            <span class="card-summary-title">4. Результаты</span>
+            <span class="card-summary-meta">Итог анализа</span>
+          </summary>
+          <div id="summary" class="summary empty">
+            Выберите ресторан, при необходимости клиента, затем постройте зону доставки.
+          </div>
+        </details>
+
+        <details class="card card-toggle">
+          <summary class="card-summary">
+            <span class="card-summary-title">5. Журнал API</span>
+            <span class="card-summary-meta">Для демонстрации лабораторной</span>
+          </summary>
+          <div id="api-log" class="log"></div>
+        </details>
+      </aside>
+
+      <main class="map-area">
+        <div class="map-topbar">
+          <div class="badge">Город: Калуга</div>
+          <div id="badge-map" class="badge">Карта: загрузка...</div>
+          <div id="badge-routing" class="badge">Маршруты и изохроны: загрузка...</div>
+        </div>
+        <div id="map"></div>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+  </html>
